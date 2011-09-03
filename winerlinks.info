@@ -1,1 +1,5 @@
 name = WinerLinks
+description = "Creates permalinks for paragraphs in node content"
+version = VERSION
+core = 7.x
+files[] = winerlinks.module
