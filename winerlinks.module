@@ -25,10 +25,6 @@ function winerlinks_filter_info() {
  */
 function winerlinks_filter( $content ) {
 
-  if ( !((arg(0)=='node') && (is_numeric(arg(1)) && (!arg(2)))) ) {
-    return $content;
-  }
-
   preg_match_all("/\<p\>(.*?)\<\/p\>/is", $content, $paragraphs);
 
   $output = array();
