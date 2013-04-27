@@ -20,8 +20,8 @@ define('WINERLINKS_POSITION_END', 1);
  */
 define('WINERLINKS_SYMBOL', '&para;');
 
-/*
- * Implements hook_filter_info.
+/**
+ * Implements hook_filter_info().
  */
 function winerlinks_filter_info() {
   $filters['winerlinks'] = array(
@@ -70,7 +70,7 @@ function _winerlinks_filter_winerlinks_settings($form, &$form_state, $filter, $f
 function _winerlinks_filter_winerlinks( $content, $filter, $format ) {
 
   // Limit to node content pages.
-  if( !$node = menu_get_object('node') ) return $content;
+  if ( !$node = menu_get_object('node') ) return $content;
 
   // Lets check for paragraph tags
   $matches = preg_match_all("/\<p\>(.*?)\<\/p\>/is", $content, $paragraphs);
@@ -95,7 +95,7 @@ function _winerlinks_filter_winerlinks( $content, $filter, $format ) {
       $options + array('fragment' => $id)
     );
 
-    switch($filter->settings['position']) {
+    switch ($filter->settings['position']) {
       default:
       case WINERLINKS_POSITION_START:
         $content = $link . $paragraph;
