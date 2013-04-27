@@ -87,7 +87,7 @@ function _winerlinks_filter_winerlinks( $content, $filter, $format ) {
 
   foreach ( $paragraphs[1] as $index => $paragraph ) {
 
-    $id = 'p' . substr(md5($node->nid . $index . $paragraph), 0, 6);
+    $id = 'p' . substr(md5($node->nid . $index), 0, 6);
 
     $link = l(
       $filter->settings['symbol'],
