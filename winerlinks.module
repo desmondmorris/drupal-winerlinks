@@ -1,15 +1,28 @@
 <?php
 
+/**
+ * @file
+ * The main module file.
+ *
+ * Provides input filter hooks
+ */
+
+/*
+ * Implements hook_filter_info.
+ */
 function winerlinks_filter_info() {
   $filters['winerlinks'] = array(
     'title' => t('WinerLinks'),
-    'description' => t('Creates permalinks for individual paragraphs in node content'),
+    'description' => t('Creates permalinks for on paragraphs.'),
     'process callback' => 'winerlinks_filter',
     'cache' => FALSE,
   );
   return $filters;
 }
 
+/**
+ * Filter callback
+ */
 function winerlinks_filter( $content ) {
 
   if ( !((arg(0)=='node') && (is_numeric(arg(1)) && (!arg(2)))) ) {
