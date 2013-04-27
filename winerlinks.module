@@ -7,6 +7,9 @@
  * Provides input filter hooks
  */
 
+define('WINERLINKS_POSITION_START', 0);
+define('WINERLINKS_POSITION_END', 1);
+
 /*
  * Implements hook_filter_info.
  */
@@ -14,35 +17,67 @@ function winerlinks_filter_info() {
   $filters['winerlinks'] = array(
     'title' => t('WinerLinks'),
     'description' => t('Creates permalinks for on paragraphs.'),
-    'process callback' => 'winerlinks_filter',
+    'process callback' => '_winerlinks_filter_winerlinks',
+    'settings callback' => '_winerlinks_filter_winerlinks_settings',
+    'default settings' => array(
+      'symbol' => '&para;',
+      'position' => 0,
+    ),
     'cache' => FALSE,
   );
   return $filters;
 }
 
 /**
+ * Filter settings callback
+ */
+function _winerlinks_filter_winerlinks_settings($form, &$form_state, $filter, $format, $defaults) {
+
+  $filter->settings += $defaults;
+
+  $settings['symbol'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Symbol'),
+    '#default_value' => $filter->settings['symbol'],
+    '#description' => t('The text you would like to use for the permalink.'),
+  );
+  $settings['position'] = array(
+    '#type' => 'select',
+    '#title' => t('Link position'),
+    '#options' => array(
+      WINERLINKS_POSITION_START => 'Beginning of paragraph',
+      WINERLINKS_POSITION_END => 'End of paragraph',
+    ),
+    '#default_value' => $filter->settings['position'],
+  );
+  return $settings;
+}
+
+
+/**
  * Filter callback
  */
-function winerlinks_filter( $content ) {
+function _winerlinks_filter_winerlinks( $content, $filter ) {
 
   preg_match_all("/\<p\>(.*?)\<\/p\>/is", $content, $paragraphs);
 
   $output = array();
 
-  if ( !empty( $paragraphs[1] ) ) {
-    $symbol = variable_get('winerlinks_permalink_symbol', '&para;');
-    $position = variable_get('winerlinks_permalink_position', 'start');
+  if ( !empty( $paragraphs ) ) {
 
     foreach ( $paragraphs[1] as $key => $content ) {
       $id = 'para-' . ($key+1);
-      $link = l( $symbol, 'node/' . arg(1), array('fragment' => $id, 'html' => TRUE, array('attributes' => array('class' => 'winerlink'))) );
+      $link = l( $filter->settings['symbol'], 'node/' . arg(1), array('fragment' => $id, 'html' => TRUE, array('attributes' => array('class' => 'winerlink'))) );
       $p = '<p id="' . $id . '">';
 
-      if ( $position == 'start' ) {
-        $output[] = $p . $link . $content . '</p>';
-      }
-      else{
-        $output[] = $p . $content . $link . '</p>';
+      switch($filter->settings['position']) {
+        default:
+        case WINERLINKS_POSITION_START:
+          $output[] = $p . $link . $content . '</p>';
+          break;
+        case WINERLINKS_POSITION_END:
+          $output[] = $p . $content . $link . '</p>';
+          break;
       }
     }
   }
