@@ -3,12 +3,22 @@
 /**
  * @file
  * The main module file.
- *
- * Provides input filter hooks
  */
 
+/**
+ * Start position for permalink
+ */
 define('WINERLINKS_POSITION_START', 0);
+
+/**
+ * End position for permalink
+ */
 define('WINERLINKS_POSITION_END', 1);
+
+/**
+ * Default permalink symbol value
+ */
+define('WINERLINKS_SYMBOL', '&para;');
 
 /*
  * Implements hook_filter_info.
@@ -20,8 +30,8 @@ function winerlinks_filter_info() {
     'process callback' => '_winerlinks_filter_winerlinks',
     'settings callback' => '_winerlinks_filter_winerlinks_settings',
     'default settings' => array(
-      'symbol' => '&para;',
-      'position' => 0,
+      'symbol' => WINERLINKS_SYMBOL,
+      'position' => WINERLINKS_POSITION_START,
     ),
     'cache' => FALSE,
   );
@@ -57,29 +67,45 @@ function _winerlinks_filter_winerlinks_settings($form, &$form_state, $filter, $f
 /**
  * Filter callback
  */
-function _winerlinks_filter_winerlinks( $content, $filter ) {
+function _winerlinks_filter_winerlinks( $content, $filter, $format ) {
 
-  preg_match_all("/\<p\>(.*?)\<\/p\>/is", $content, $paragraphs);
+  // Limit to node content pages.
+  if( !$node = menu_get_object('node') ) return $content;
+
+  // Lets check for paragraph tags
+  $matches = preg_match_all("/\<p\>(.*?)\<\/p\>/is", $content, $paragraphs);
+
+  // If no paragraph tags are found, return original content
+  if ( $matches == 0 ) return $content;
 
   $output = array();
 
-  if ( !empty( $paragraphs ) ) {
+  $options = array(
+    'attributes' => array('class' => array('winerlink')),
+    'html' => TRUE,
+  );
 
-    foreach ( $paragraphs[1] as $key => $content ) {
-      $id = 'para-' . ($key+1);
-      $link = l( $filter->settings['symbol'], 'node/' . arg(1), array('fragment' => $id, 'html' => TRUE, array('attributes' => array('class' => 'winerlink'))) );
-      $p = '<p id="' . $id . '">';
+  foreach ( $paragraphs[1] as $index => $paragraph ) {
 
-      switch($filter->settings['position']) {
-        default:
-        case WINERLINKS_POSITION_START:
-          $output[] = $p . $link . $content . '</p>';
-          break;
-        case WINERLINKS_POSITION_END:
-          $output[] = $p . $content . $link . '</p>';
-          break;
-      }
+    $id = 'p' . substr(md5($node->nid . $index . $paragraph), 0, 6);
+
+    $link = l(
+      $filter->settings['symbol'],
+      'node/' . $node->nid,
+      $options + array('fragment' => $id)
+    );
+
+    switch($filter->settings['position']) {
+      default:
+      case WINERLINKS_POSITION_START:
+        $content = $link . $paragraph;
+        break;
+      case WINERLINKS_POSITION_END:
+        $content = $paragraph . $link;
+        break;
     }
+
+    $output[] = '<p id="' . $id . '">' . $content . '</p>';
   }
 
   return implode('', $output);
